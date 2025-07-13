@@ -26,7 +26,9 @@ export type Task = {
 
 export type QuranPage = {
   id: number; // 1-604
-  status: 'none' | 'read' | 'memorized' | 'revised';
+  isRead: boolean;
+  isMemorized: boolean;
+  isRevised: boolean;
   lastRead?: number; // timestamp
   lastMemorized?: number; // timestamp
   lastRevised?: number; // timestamp

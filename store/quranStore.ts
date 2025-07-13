@@ -6,7 +6,9 @@ import { QuranPage } from '@/types';
 interface QuranState {
   pages: QuranPage[];
   initializePages: () => void;
-  updatePageStatus: (pageId: number, status: QuranPage['status']) => void;
+  updatePageRead: (pageId: number, isRead: boolean) => void;
+  updatePageMemorized: (pageId: number, isMemorized: boolean) => void;
+  updatePageRevised: (pageId: number, isRevised: boolean) => void;
   getStats: () => {
     totalRead: number;
     totalMemorized: number;
@@ -14,13 +16,18 @@ interface QuranState {
     completionPercentage: number;
   };
   getPagesToRevise: (limit?: number) => QuranPage[];
+  getReadPages: () => QuranPage[];
+  getMemorizedPages: () => QuranPage[];
+  getRevisedPages: () => QuranPage[];
 }
 
 // Initialize with 604 pages
 const createInitialPages = (): QuranPage[] => {
   return Array.from({ length: 604 }, (_, i) => ({
     id: i + 1,
-    status: 'none',
+    isRead: false,
+    isMemorized: false,
+    isRevised: false,
   }));
 };
 
@@ -31,17 +38,49 @@ export const useQuranStore = create<QuranState>()(
       initializePages: () => {
         set({ pages: createInitialPages() });
       },
-      updatePageStatus: (pageId, status) => {
+      updatePageRead: (pageId, isRead) => {
         set((state) => ({
           pages: state.pages.map((page) => {
             if (page.id === pageId) {
               const now = Date.now();
               return {
                 ...page,
-                status,
-                ...(status === 'read' && { lastRead: now }),
-                ...(status === 'memorized' && { lastMemorized: now }),
-                ...(status === 'revised' && { lastRevised: now }),
+                isRead,
+                ...(isRead && { lastRead: now }),
+              };
+            }
+            return page;
+          }),
+        }));
+      },
+      updatePageMemorized: (pageId, isMemorized) => {
+        set((state) => ({
+          pages: state.pages.map((page) => {
+            if (page.id === pageId) {
+              const now = Date.now();
+              return {
+                ...page,
+                isMemorized,
+                // إذا تم حفظ الصفحة، تصبح مقروءة تلقائياً
+                ...(isMemorized && { isRead: true, lastRead: now }),
+                ...(isMemorized && { lastMemorized: now }),
+                // إذا تم إلغاء الحفظ، يتم إلغاء المراجعة أيضاً
+                ...(!isMemorized && { isRevised: false }),
+              };
+            }
+            return page;
+          }),
+        }));
+      },
+      updatePageRevised: (pageId, isRevised) => {
+        set((state) => ({
+          pages: state.pages.map((page) => {
+            if (page.id === pageId) {
+              const now = Date.now();
+              return {
+                ...page,
+                isRevised,
+                ...(isRevised && { lastRevised: now }),
               };
             }
             return page;
@@ -50,9 +89,9 @@ export const useQuranStore = create<QuranState>()(
       },
       getStats: () => {
         const pages = get().pages;
-        const totalRead = pages.filter((p) => p.status === 'read').length;
-        const totalMemorized = pages.filter((p) => p.status === 'memorized').length;
-        const totalRevised = pages.filter((p) => p.status === 'revised').length;
+        const totalRead = pages.filter((p) => p.isRead).length;
+        const totalMemorized = pages.filter((p) => p.isMemorized).length;
+        const totalRevised = pages.filter((p) => p.isRevised).length;
         const completionPercentage = (totalMemorized / 604) * 100;
         
         return {
@@ -64,7 +103,7 @@ export const useQuranStore = create<QuranState>()(
       },
       getPagesToRevise: (limit = 10) => {
         const memorizedPages = get().pages.filter(
-          (p) => p.status === 'memorized' || p.status === 'revised'
+          (p) => p.isMemorized
         );
         
         // Sort by last revised date (oldest first)
@@ -76,6 +115,15 @@ export const useQuranStore = create<QuranState>()(
           })
           .slice(0, limit);
       },
+      getReadPages: () => {
+        return get().pages.filter((p) => p.isRead);
+      },
+      getMemorizedPages: () => {
+        return get().pages.filter((p) => p.isMemorized);
+      },
+      getRevisedPages: () => {
+        return get().pages.filter((p) => p.isRevised);
+      },
     }),
     {
       name: 'quran-storage',
@@ -85,6 +133,25 @@ export const useQuranStore = create<QuranState>()(
           // If no pages exist, initialize them
           if (!state || !state.pages || state.pages.length === 0) {
             state?.initializePages();
+          } else {
+            // Migrate old data structure if needed
+            const needsMigration = state.pages.some((page: any) => 
+              page.status !== undefined
+            );
+            
+            if (needsMigration) {
+              const migratedPages = state.pages.map((page: any) => ({
+                id: page.id,
+                isRead: page.status === 'read' || page.status === 'memorized' || page.status === 'revised',
+                isMemorized: page.status === 'memorized' || page.status === 'revised',
+                isRevised: page.status === 'revised',
+                lastRead: page.lastRead,
+                lastMemorized: page.lastMemorized,
+                lastRevised: page.lastRevised,
+              }));
+              
+              state.pages = migratedPages;
+            }
           }
         };
       },

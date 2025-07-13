@@ -11,7 +11,17 @@ import { BookOpen, BookMarked, RefreshCw, Eye } from 'lucide-react-native';
 
 export default function QuranScreen() {
   const { settings } = useSettingsStore();
-  const { pages, updatePageStatus, getStats, initializePages } = useQuranStore();
+  const { 
+    pages, 
+    updatePageRead, 
+    updatePageMemorized, 
+    updatePageRevised, 
+    getStats, 
+    initializePages,
+    getReadPages,
+    getMemorizedPages,
+    getRevisedPages
+  } = useQuranStore();
   const [selectedPage, setSelectedPage] = useState<QuranPage | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'read' | 'memorized' | 'revised'>('read');
@@ -32,29 +42,36 @@ export default function QuranScreen() {
     setModalVisible(true);
   };
   
-  const handleUpdateStatus = (status: QuranPage['status']) => {
+  const handleUpdateRead = (isRead: boolean) => {
     if (selectedPage) {
-      updatePageStatus(selectedPage.id, status);
+      updatePageRead(selectedPage.id, isRead);
       setModalVisible(false);
     }
   };
   
-  const handleResetStatus = () => {
+  const handleUpdateMemorized = (isMemorized: boolean) => {
     if (selectedPage) {
-      updatePageStatus(selectedPage.id, 'none');
+      updatePageMemorized(selectedPage.id, isMemorized);
       setModalVisible(false);
     }
   };
   
-  // Filter pages based on active tab
+  const handleUpdateRevised = (isRevised: boolean) => {
+    if (selectedPage) {
+      updatePageRevised(selectedPage.id, isRevised);
+      setModalVisible(false);
+    }
+  };
+  
+  // Get filtered pages based on active tab
   const getFilteredPages = () => {
     switch (activeTab) {
       case 'read':
-        return pages;
+        return pages; // Show all pages, colored based on read status
       case 'memorized':
-        return pages;
+        return pages; // Show all pages, colored based on memorized status
       case 'revised':
-        return pages.filter(page => page.status === 'memorized' || page.status === 'revised');
+        return getMemorizedPages(); // Only show memorized pages for revision
       default:
         return pages;
     }
@@ -62,42 +79,38 @@ export default function QuranScreen() {
   
   const filteredPages = getFilteredPages();
   
-  // Get modal options based on active tab
-  const getModalOptions = () => {
+  // Get modal content based on active tab and current page status
+  const getModalContent = () => {
+    if (!selectedPage) return null;
+    
     switch (activeTab) {
       case 'read':
-        return [
-          {
-            title: 'مقروء',
-            status: 'read' as const,
-            color: themeColors.quranRead,
-            icon: <Eye size={24} color="#FFFFFF" />,
-          },
-        ];
+        return {
+          title: selectedPage.isRead ? 'إلغاء التلاوة' : 'تسجيل التلاوة',
+          action: () => handleUpdateRead(!selectedPage.isRead),
+          actionColor: themeColors.quranRead,
+          icon: <Eye size={24} color="#FFFFFF" />,
+        };
       case 'memorized':
-        return [
-          {
-            title: 'محفوظ',
-            status: 'memorized' as const,
-            color: themeColors.quranMemorized,
-            icon: <BookMarked size={24} color="#FFFFFF" />,
-          },
-        ];
+        return {
+          title: selectedPage.isMemorized ? 'إلغاء الحفظ' : 'تسجيل الحفظ',
+          action: () => handleUpdateMemorized(!selectedPage.isMemorized),
+          actionColor: themeColors.quranMemorized,
+          icon: <BookMarked size={24} color="#FFFFFF" />,
+        };
       case 'revised':
-        return [
-          {
-            title: 'مراجعة',
-            status: 'revised' as const,
-            color: themeColors.quranRevised,
-            icon: <RefreshCw size={24} color="#FFFFFF" />,
-          },
-        ];
+        return {
+          title: selectedPage.isRevised ? 'إلغاء المراجعة' : 'تسجيل المراجعة',
+          action: () => handleUpdateRevised(!selectedPage.isRevised),
+          actionColor: themeColors.quranRevised,
+          icon: <RefreshCw size={24} color="#FFFFFF" />,
+        };
       default:
-        return [];
+        return null;
     }
   };
   
-  const modalOptions = getModalOptions();
+  const modalContent = getModalContent();
   
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -211,7 +224,7 @@ export default function QuranScreen() {
           <StyledText variant="caption" color={themeColors.subtext} style={styles.gridSubtitle}>
             {activeTab === 'read' && 'اضغط على الصفحة لتحديدها كمقروءة'}
             {activeTab === 'memorized' && 'اضغط على الصفحة لتحديدها كمحفوظة'}
-            {activeTab === 'revised' && 'اضغط على الصفحة لتحديدها كمراجعة'}
+            {activeTab === 'revised' && 'اضغط على الصفحة لتحديدها كمراجعة (الصفحات المحفوظة فقط)'}
           </StyledText>
           
           <QuranPageGrid 
@@ -240,30 +253,26 @@ export default function QuranScreen() {
               {activeTab === 'revised' && 'تحديث حالة المراجعة'}
             </StyledText>
             
+            {selectedPage && activeTab === 'revised' && !selectedPage.isMemorized && (
+              <View style={[styles.warningContainer, { backgroundColor: colors.light.warning + '20', borderColor: colors.light.warning }]}>
+                <StyledText variant="caption" color={colors.light.warning} centered>
+                  يجب حفظ الصفحة أولاً قبل تسجيل المراجعة
+                </StyledText>
+              </View>
+            )}
+            
             <View style={styles.modalButtons}>
-              {modalOptions.map((option) => (
+              {modalContent && (selectedPage?.isMemorized || activeTab !== 'revised') && (
                 <TouchableOpacity
-                  key={option.status}
-                  style={[styles.statusButton, { backgroundColor: option.color }]}
-                  onPress={() => handleUpdateStatus(option.status)}
+                  style={[styles.statusButton, { backgroundColor: modalContent.actionColor }]}
+                  onPress={modalContent.action}
                 >
-                  {option.icon}
+                  {modalContent.icon}
                   <StyledText variant="button" color="#FFFFFF" style={styles.statusButtonText}>
-                    {option.title}
+                    {modalContent.title}
                   </StyledText>
                 </TouchableOpacity>
-              ))}
-              
-              <TouchableOpacity
-                style={[styles.resetButton, { backgroundColor: themeColors.border }]}
-                onPress={handleResetStatus}
-              >
-                <StyledText variant="button" color={themeColors.text}>
-                  {activeTab === 'read' && 'غير مقروء'}
-                  {activeTab === 'memorized' && 'غير محفوظ'}
-                  {activeTab === 'revised' && 'غير مراجعة'}
-                </StyledText>
-              </TouchableOpacity>
+              )}
             </View>
             
             <TouchableOpacity
@@ -388,6 +397,13 @@ const styles = StyleSheet.create({
   modalSubtitle: {
     marginBottom: 24,
   },
+  warningContainer: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+    width: '100%',
+  },
   modalButtons: {
     width: '100%',
     marginBottom: 16,
@@ -402,12 +418,6 @@ const styles = StyleSheet.create({
   },
   statusButtonText: {
     marginLeft: 8,
-  },
-  resetButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
   },
   cancelButton: {
     width: '100%',

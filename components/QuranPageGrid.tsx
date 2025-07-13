@@ -19,13 +19,13 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
     // Show different colors based on active tab and page status
     switch (activeTab) {
       case 'read':
-        if (page.status === 'read') return themeColors.quranRead;
+        if (page.isRead) return themeColors.quranRead;
         break;
       case 'memorized':
-        if (page.status === 'memorized') return themeColors.quranMemorized;
+        if (page.isMemorized) return themeColors.quranMemorized;
         break;
       case 'revised':
-        if (page.status === 'revised') return themeColors.quranRevised;
+        if (page.isRevised) return themeColors.quranRevised;
         break;
     }
     
@@ -37,13 +37,13 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
     // Show white text on colored backgrounds
     switch (activeTab) {
       case 'read':
-        if (page.status === 'read') return '#FFFFFF';
+        if (page.isRead) return '#FFFFFF';
         break;
       case 'memorized':
-        if (page.status === 'memorized') return '#FFFFFF';
+        if (page.isMemorized) return '#FFFFFF';
         break;
       case 'revised':
-        if (page.status === 'revised') return '#FFFFFF';
+        if (page.isRevised) return '#FFFFFF';
         break;
     }
     
