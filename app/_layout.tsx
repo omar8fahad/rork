@@ -1,5 +1,3 @@
-import { BundleInspector } from '../.rorkai/inspector';
-import { RorkErrorBoundary } from '../.rorkai/rork-error-boundary';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -20,13 +18,20 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
   });
-  
+
   const { settings } = useSettingsStore();
   const colorScheme = useColorScheme();
-  
+
   // Determine the active theme
-  const activeTheme = settings.theme === 'system' ? colorScheme || 'light' : settings.theme;
-  const themeColors = colors[activeTheme];
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
 
   useEffect(() => {
     if (error) {
@@ -48,9 +53,9 @@ export default function RootLayout() {
   return <RootLayoutNav theme={activeTheme} />;
 }
 
-function RootLayoutNav({ theme }: { theme: 'light' | 'dark' }) {
-  const themeColors = colors[theme];
-  
+function RootLayoutNav({ theme }: { theme: string }) {
+  const themeColors = colors[theme as keyof typeof colors] || colors.light;
+
   return (
     <Stack
       screenOptions={{
@@ -65,47 +70,47 @@ function RootLayoutNav({ theme }: { theme: 'light' | 'dark' }) {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="routine/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="routine/[id]"
+        options={{
           title: "تفاصيل الروتين",
           presentation: "card",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="routine/create" 
-        options={{ 
+      <Stack.Screen
+        name="routine/create"
+        options={{
           title: "إنشاء روتين",
           presentation: "modal",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="routine/edit/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="routine/edit/[id]"
+        options={{
           title: "تعديل الروتين",
           presentation: "modal",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="book/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="book/[id]"
+        options={{
           title: "تفاصيل الكتاب",
           presentation: "card",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="book/create" 
-        options={{ 
+      <Stack.Screen
+        name="book/create"
+        options={{
           title: "إضافة كتاب جديد",
           presentation: "modal",
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="book/edit/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="book/edit/[id]"
+        options={{
           title: "تعديل الكتاب",
           presentation: "modal",
-        }} 
+        }}
       />
     </Stack>
   );

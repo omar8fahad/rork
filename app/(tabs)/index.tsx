@@ -11,7 +11,9 @@ import { colors } from '@/constants/colors';
 import { Task, Routine, Book } from '@/types';
 import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { BookOpen, Plus } from 'lucide-react-native';
+import { BookOpen, Plus, Calendar } from 'lucide-react-native';
+import { formatDateByCalendar } from '@/utils/hijriUtils';
+import { useColorScheme } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -20,10 +22,19 @@ export default function HomeScreen() {
   const { getActiveBooks } = useBookStore();
   const [refreshing, setRefreshing] = useState(false);
   const [today] = useState(format(new Date(), 'yyyy-MM-dd'));
-  
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   // Get today's tasks and their associated routines
   const todaysTasks = useMemo(() => {
     return tasks
@@ -34,32 +45,32 @@ export default function HomeScreen() {
       })
       .filter(({ routine }) => routine !== undefined) as { task: Task; routine: Routine }[];
   }, [tasks, routines, today]);
-  
+
   // Get active books
   const activeBooks = useMemo(() => {
     return getActiveBooks().slice(0, 3); // Show only first 3 books
   }, [getActiveBooks]);
-  
+
   // Split tasks into pending and completed
   const pendingTasks = useMemo(() => {
     return todaysTasks.filter(({ task }) => !task.completed);
   }, [todaysTasks]);
-  
+
   const completedTasks = useMemo(() => {
     return todaysTasks.filter(({ task }) => task.completed);
   }, [todaysTasks]);
-  
+
   const handleRefresh = () => {
     setRefreshing(true);
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
   };
-  
+
   const handleTaskPress = (taskId: string, routineId: string) => {
     router.push(`/routine/${routineId}?taskId=${taskId}`);
   };
-  
+
   const handleTaskComplete = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
@@ -69,11 +80,11 @@ export default function HomeScreen() {
       });
     }
   };
-  
+
   const handleBookPress = (bookId: string) => {
     router.push(`/book/${bookId}`);
   };
-  
+
   const renderTaskItem = ({ item }: { item: { task: Task; routine: Routine } }) => (
     <TaskCard
       task={item.task}
@@ -82,11 +93,14 @@ export default function HomeScreen() {
       onComplete={() => handleTaskComplete(item.task.id)}
     />
   );
-  
+
   const renderBookItem = ({ item }: { item: Book }) => (
-    <BookCard book={item} onPress={() => handleBookPress(item.id)} />
+    <BookCard book={item} onPress={() => handleBookPress(item.id)} horizontal />
   );
-  
+
+  // Format date based on user's calendar preference
+  const formattedDate = formatDateByCalendar(new Date(), settings.calendarType);
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <FlatList
@@ -97,10 +111,14 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <StyledText variant="h1">مهام اليوم</StyledText>
-            <StyledText variant="body" color={themeColors.subtext} style={styles.date}>
-              {format(new Date(), 'EEEE، d MMMM')}
-            </StyledText>
-            
+
+            <View style={styles.dateContainer}>
+              <Calendar size={16} color={themeColors.primary} />
+              <StyledText variant="body" color={themeColors.subtext} style={styles.date}>
+                {formattedDate}
+              </StyledText>
+            </View>
+
             {/* Active Books Section */}
             {activeBooks.length > 0 && (
               <View style={styles.booksSection}>
@@ -120,7 +138,7 @@ export default function HomeScreen() {
                     </StyledText>
                   </TouchableOpacity>
                 </View>
-                
+
                 <FlatList
                   data={activeBooks}
                   renderItem={renderBookItem}
@@ -131,7 +149,7 @@ export default function HomeScreen() {
                 />
               </View>
             )}
-            
+
             {pendingTasks.length === 0 && completedTasks.length === 0 ? (
               <View style={styles.emptyState}>
                 <StyledText variant="body" color={themeColors.subtext} centered>
@@ -152,7 +170,7 @@ export default function HomeScreen() {
                     </StyledText>
                   </View>
                 )}
-                
+
                 {completedTasks.length > 0 && pendingTasks.length > 0 && (
                   <View style={styles.section}>
                     <StyledText variant="h3" style={styles.sectionTitle}>
@@ -188,9 +206,14 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
   },
-  date: {
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
     marginBottom: 24,
+  },
+  date: {
+    marginLeft: 8,
   },
   booksSection: {
     marginBottom: 24,

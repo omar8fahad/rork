@@ -3,31 +3,42 @@ import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Alert
 import { StyledText } from '@/components/StyledText';
 import { Button } from '@/components/Button';
 import { ProgressBar } from '@/components/ProgressBar';
+import { DateDisplay } from '@/components/DateDisplay';
 import { useBookStore } from '@/store/bookStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors } from '@/constants/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { format } from 'date-fns';
 import { Trash2, Edit } from 'lucide-react-native';
+import { useColorScheme } from 'react-native';
+import { formatDateByCalendar } from '@/utils/hijriUtils';
 
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { settings } = useSettingsStore();
   const { books, updateBook, deleteBook, updateReadingProgress } = useBookStore();
-  
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   const book = books.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(book?.currentPage.toString() || '0');
-  
+
   if (!book) {
     return null;
   }
-  
+
   const progress = (book.currentPage / book.totalPages) * 100;
-  
+
   const handleDeleteBook = () => {
     Alert.alert(
       'حذف الكتاب',
@@ -45,23 +56,23 @@ export default function BookDetailScreen() {
       ]
     );
   };
-  
+
   const handleEditBook = () => {
     router.push(`/book/edit/${id}`);
   };
-  
+
   const handleUpdateProgress = () => {
     const newPage = parseInt(currentPage, 10);
-    
+
     if (isNaN(newPage) || newPage < 0 || newPage > book.totalPages) {
       Alert.alert('رقم صفحة غير صحيح', 'يرجى إدخال رقم صفحة صحيح.');
       return;
     }
-    
+
     updateReadingProgress(id, newPage);
     Alert.alert('تم التحديث', 'تم تحديث تقدم القراءة بنجاح.');
   };
-  
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
@@ -77,7 +88,7 @@ export default function BookDetailScreen() {
               </StyledText>
             </View>
           )}
-          
+
           <View style={styles.bookInfo}>
             <StyledText variant="h2" style={styles.bookTitle}>
               {book.title}
@@ -85,14 +96,14 @@ export default function BookDetailScreen() {
             <StyledText variant="body" color={themeColors.subtext}>
               بقلم {book.author}
             </StyledText>
-            
+
             <View style={styles.progressContainer}>
               <ProgressBar progress={progress} />
               <StyledText variant="caption" color={themeColors.subtext} style={styles.progressText}>
                 {book.currentPage} / {book.totalPages} صفحة ({progress.toFixed(0)}%)
               </StyledText>
             </View>
-            
+
             {book.completedDate && (
               <View style={[styles.completedBadge, { backgroundColor: themeColors.success }]}>
                 <StyledText variant="caption" color="#FFFFFF">
@@ -102,7 +113,7 @@ export default function BookDetailScreen() {
             )}
           </View>
         </View>
-        
+
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, { borderColor: themeColors.border }]}
@@ -113,7 +124,7 @@ export default function BookDetailScreen() {
               تعديل
             </StyledText>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[styles.actionButton, { borderColor: colors.light.error }]}
             onPress={handleDeleteBook}
@@ -124,13 +135,13 @@ export default function BookDetailScreen() {
             </StyledText>
           </TouchableOpacity>
         </View>
-        
+
         {!book.completedDate && (
           <View style={styles.updateSection}>
             <StyledText variant="h3" style={styles.sectionTitle}>
               تحديث التقدم
             </StyledText>
-            
+
             <View style={styles.updateProgressContainer}>
               <View
                 style={[
@@ -147,7 +158,7 @@ export default function BookDetailScreen() {
                   keyboardType="numeric"
                 />
               </View>
-              
+
               <Button
                 title="تحديث"
                 onPress={handleUpdateProgress}
@@ -157,12 +168,12 @@ export default function BookDetailScreen() {
             </View>
           </View>
         )}
-        
+
         <View style={styles.historySection}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             تاريخ القراءة
           </StyledText>
-          
+
           {book.readingSessions.length > 0 ? (
             <View style={[styles.historyCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
               {book.readingSessions
@@ -172,12 +183,20 @@ export default function BookDetailScreen() {
                 .map((session, index) => (
                   <View key={index}>
                     <View style={styles.historyItem}>
-                      <StyledText variant="body">
-                        قرأت {session.pagesRead} صفحة
-                      </StyledText>
-                      <StyledText variant="caption" color={themeColors.subtext}>
-                        {format(new Date(session.date), 'd MMM، yyyy')}
-                      </StyledText>
+                      <View style={styles.historyItemContent}>
+                        <StyledText variant="body">
+                          قرأت {session.pagesRead} صفحة
+                        </StyledText>
+                        <View style={styles.dateContainer}>
+                          <DateDisplay
+                            date={new Date(session.date)}
+                            showIcon={false}
+                          />
+                          <StyledText variant="caption" color={themeColors.subtext} style={styles.hijriDate}>
+                            {formatDateByCalendar(new Date(session.date), 'hijri')}
+                          </StyledText>
+                        </View>
+                      </View>
                     </View>
                     {index < Math.min(book.readingSessions.length - 1, 9) && (
                       <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
@@ -299,6 +318,16 @@ const styles = StyleSheet.create({
   },
   historyItem: {
     padding: 16,
+  },
+  historyItemContent: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  dateContainer: {
+    gap: 2,
+  },
+  hijriDate: {
+    fontSize: 12,
   },
   divider: {
     height: 1,

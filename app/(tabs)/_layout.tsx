@@ -7,11 +7,18 @@ import { Home, ListChecks, BookOpen, BookMarked, Settings } from "lucide-react-n
 export default function TabLayout() {
   const { settings } = useSettingsStore();
   const colorScheme = useColorScheme();
-  
+
   // Determine the active theme
-  const activeTheme = settings.theme === 'system' ? colorScheme || 'light' : settings.theme;
-  const themeColors = colors[activeTheme];
-  
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   return (
     <Tabs
       screenOptions={{

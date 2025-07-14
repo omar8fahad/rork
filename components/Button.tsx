@@ -2,6 +2,7 @@ import { TouchableOpacity, StyleSheet, ActivityIndicator, View, ViewStyle } from
 import { StyledText } from './StyledText';
 import { colors } from '@/constants/colors';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useColorScheme } from 'react-native';
 
 interface ButtonProps {
   title: string;
@@ -27,9 +28,19 @@ export function Button({
   style,
 }: ButtonProps) {
   const { settings } = useSettingsStore();
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   const getVariantStyle = () => {
     switch (variant) {
       case 'primary':
@@ -55,7 +66,7 @@ export function Button({
         };
     }
   };
-  
+
   const getTextColor = () => {
     switch (variant) {
       case 'primary':
@@ -66,7 +77,7 @@ export function Button({
         return settings.accentColor || themeColors.primary;
     }
   };
-  
+
   const getSizeStyle = () => {
     switch (size) {
       case 'small':
@@ -86,7 +97,7 @@ export function Button({
         };
     }
   };
-  
+
   return (
     <TouchableOpacity
       style={[

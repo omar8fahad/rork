@@ -2,19 +2,45 @@ import { useState } from 'react';
 import { View, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
 import { StyledText } from '@/components/StyledText';
 import { useSettingsStore } from '@/store/settingsStore';
-import { colors } from '@/constants/colors';
+import { colors, themeNames, ThemeName } from '@/constants/colors';
 import { useColorScheme } from 'react-native';
-import { Moon, Sun, Smartphone, Bell, Database, ArrowUpDown } from 'lucide-react-native';
+import { Moon, Sun, Smartphone, Bell, Database, ArrowUpDown, Calendar, Palette } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
-  const { settings, setTheme, setAccentColor, setFontSize, toggleNotifications, setDailyReminderTime } = useSettingsStore();
-  
+  const {
+    settings,
+    setTheme,
+    setAccentColor,
+    setFontSize,
+    setCalendarType,
+    toggleNotifications,
+    setDailyReminderTime
+  } = useSettingsStore();
+
   // Determine the active theme
-  const activeTheme = settings.theme === 'system' ? colorScheme || 'light' : settings.theme;
-  const themeColors = colors[activeTheme];
-  
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
+  const themes = [
+    { id: 'light', name: themeNames.light, icon: Sun },
+    { id: 'dark', name: themeNames.dark, icon: Moon },
+    { id: 'system', name: 'تلقائي', icon: Smartphone },
+    { id: 'andalusianMosaic', name: themeNames.andalusianMosaic, icon: Palette },
+    { id: 'qiblaLines', name: themeNames.qiblaLines, icon: Palette },
+    { id: 'palmBreeze', name: themeNames.palmBreeze, icon: Palette },
+    { id: 'andalusianNights', name: themeNames.andalusianNights, icon: Palette },
+    { id: 'desertDawn', name: themeNames.desertDawn, icon: Palette },
+  ];
+
   const accentColors = [
     { name: 'بنفسجي', value: colors.light.primary },
     { name: 'أخضر', value: colors.light.success },
@@ -25,14 +51,19 @@ export default function SettingsScreen() {
     { name: 'سماوي', value: colors.light.cyan },
     { name: 'بنفسجي فاتح', value: colors.light.violet },
   ];
-  
+
   const fontSizes = [
     { name: 'صغير', value: 14 },
     { name: 'متوسط', value: 16 },
     { name: 'كبير', value: 18 },
     { name: 'كبير جداً', value: 20 },
   ];
-  
+
+  const calendarTypes = [
+    { name: 'ميلادي', value: 'gregorian' as const },
+    { name: 'هجري', value: 'hijri' as const },
+  ];
+
   const handleExportData = async () => {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
@@ -43,9 +74,9 @@ export default function SettingsScreen() {
         }
         return result;
       }, {});
-      
+
       const dataString = JSON.stringify(dataObject, null, 2);
-      
+
       if (Platform.OS === 'web') {
         // For web, create a download link
         const blob = new Blob([dataString], { type: 'application/json' });
@@ -70,7 +101,7 @@ export default function SettingsScreen() {
       console.error(error);
     }
   };
-  
+
   const handleImportData = () => {
     Alert.alert(
       'استيراد البيانات',
@@ -78,7 +109,7 @@ export default function SettingsScreen() {
       [{ text: 'موافق' }]
     );
   };
-  
+
   const handleResetData = () => {
     Alert.alert(
       'إعادة تعيين جميع البيانات',
@@ -101,7 +132,12 @@ export default function SettingsScreen() {
       ]
     );
   };
-  
+
+  const getThemePreviewColors = (themeName: string) => {
+    const theme = colors[themeName as keyof typeof colors] || colors.light;
+    return [theme.primary, theme.secondary, theme.success];
+  };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.header}>
@@ -110,61 +146,64 @@ export default function SettingsScreen() {
           تخصيص تجربة التطبيق
         </StyledText>
       </View>
-      
+
       <View style={styles.section}>
         <StyledText variant="h2" style={styles.sectionTitle}>
-          المظهر
+          الهوية البصرية
         </StyledText>
-        
+
         <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Sun size={20} color={themeColors.text} style={styles.settingIcon} />
-              <StyledText variant="body">الوضع الفاتح</StyledText>
-            </View>
-            <Switch
-              value={settings.theme === 'light'}
-              onValueChange={(value) => setTheme(value ? 'light' : 'dark')}
-              trackColor={{ false: themeColors.border, true: themeColors.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          
-          <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Moon size={20} color={themeColors.text} style={styles.settingIcon} />
-              <StyledText variant="body">الوضع الداكن</StyledText>
-            </View>
-            <Switch
-              value={settings.theme === 'dark'}
-              onValueChange={(value) => setTheme(value ? 'dark' : 'light')}
-              trackColor={{ false: themeColors.border, true: themeColors.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          
-          <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingLabelContainer}>
-              <Smartphone size={20} color={themeColors.text} style={styles.settingIcon} />
-              <StyledText variant="body">استخدام وضع النظام</StyledText>
-            </View>
-            <Switch
-              value={settings.theme === 'system'}
-              onValueChange={(value) => setTheme(value ? 'system' : colorScheme || 'light')}
-              trackColor={{ false: themeColors.border, true: themeColors.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+          {themes.map((theme, index) => {
+            const IconComponent = theme.icon;
+            const previewColors = getThemePreviewColors(theme.id);
+
+            return (
+              <View key={theme.id}>
+                <TouchableOpacity
+                  style={styles.themeItem}
+                  onPress={() => setTheme(theme.id as any)}
+                >
+                  <View style={styles.themeInfo}>
+                    <View style={styles.themeHeader}>
+                      <IconComponent size={20} color={themeColors.text} style={styles.themeIcon} />
+                      <StyledText variant="body">{theme.name}</StyledText>
+                    </View>
+
+                    <View style={styles.themePreview}>
+                      {previewColors.map((color, colorIndex) => (
+                        <View
+                          key={colorIndex}
+                          style={[styles.previewColor, { backgroundColor: color }]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.radioButton,
+                      settings.theme === theme.id && { borderColor: themeColors.primary },
+                    ]}
+                  >
+                    {settings.theme === theme.id && (
+                      <View
+                        style={[styles.radioButtonInner, { backgroundColor: themeColors.primary }]}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+                {index < themes.length - 1 && (
+                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                )}
+              </View>
+            );
+          })}
         </View>
-        
+
         <StyledText variant="h3" style={styles.subsectionTitle}>
           لون التمييز
         </StyledText>
-        
+
         <View style={styles.colorOptions}>
           {accentColors.map((color) => (
             <TouchableOpacity
@@ -178,11 +217,11 @@ export default function SettingsScreen() {
             />
           ))}
         </View>
-        
+
         <StyledText variant="h3" style={styles.subsectionTitle}>
           حجم الخط
         </StyledText>
-        
+
         <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
           {fontSizes.map((size, index) => (
             <View key={size.name}>
@@ -211,12 +250,49 @@ export default function SettingsScreen() {
           ))}
         </View>
       </View>
-      
+
+      <View style={styles.section}>
+        <StyledText variant="h2" style={styles.sectionTitle}>
+          التقويم
+        </StyledText>
+
+        <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+          {calendarTypes.map((calendar, index) => (
+            <View key={calendar.value}>
+              <View style={styles.settingItem}>
+                <View style={styles.settingLabelContainer}>
+                  <Calendar size={20} color={themeColors.text} style={styles.settingIcon} />
+                  <StyledText variant="body">{calendar.name}</StyledText>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.radioButton,
+                    settings.calendarType === calendar.value && {
+                      borderColor: themeColors.primary,
+                    },
+                  ]}
+                  onPress={() => setCalendarType(calendar.value)}
+                >
+                  {settings.calendarType === calendar.value && (
+                    <View
+                      style={[styles.radioButtonInner, { backgroundColor: themeColors.primary }]}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {index < calendarTypes.length - 1 && (
+                <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
       <View style={styles.section}>
         <StyledText variant="h2" style={styles.sectionTitle}>
           الإشعارات
         </StyledText>
-        
+
         <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
           <View style={styles.settingItem}>
             <View style={styles.settingLabelContainer}>
@@ -230,9 +306,9 @@ export default function SettingsScreen() {
               thumbColor="#FFFFFF"
             />
           </View>
-          
+
           <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-          
+
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => {
@@ -253,12 +329,12 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.section}>
         <StyledText variant="h2" style={styles.sectionTitle}>
           إدارة البيانات
         </StyledText>
-        
+
         <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
           <TouchableOpacity style={styles.settingItem} onPress={handleExportData}>
             <View style={styles.settingLabelContainer}>
@@ -266,18 +342,18 @@ export default function SettingsScreen() {
               <StyledText variant="body">تصدير البيانات</StyledText>
             </View>
           </TouchableOpacity>
-          
+
           <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-          
+
           <TouchableOpacity style={styles.settingItem} onPress={handleImportData}>
             <View style={styles.settingLabelContainer}>
               <Database size={20} color={themeColors.text} style={styles.settingIcon} />
               <StyledText variant="body">استيراد البيانات</StyledText>
             </View>
           </TouchableOpacity>
-          
+
           <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-          
+
           <TouchableOpacity style={styles.settingItem} onPress={handleResetData}>
             <StyledText variant="body" color={colors.light.error}>
               إعادة تعيين جميع البيانات
@@ -285,7 +361,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.footer}>
         <StyledText variant="caption" color={themeColors.subtext} centered>
           متتبع الروتين اليومي الإصدار 1.0.0
@@ -338,6 +414,32 @@ const styles = StyleSheet.create({
   settingValue: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  themeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  themeInfo: {
+    flex: 1,
+  },
+  themeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  themeIcon: {
+    marginRight: 12,
+  },
+  themePreview: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  previewColor: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
   divider: {
     height: 1,

@@ -4,6 +4,7 @@ import { colors } from '@/constants/colors';
 import { useSettingsStore } from '@/store/settingsStore';
 import { Check } from 'lucide-react-native';
 import { Task, Routine } from '@/types';
+import { useColorScheme } from 'react-native';
 
 interface TaskCardProps {
   task: Task;
@@ -14,23 +15,33 @@ interface TaskCardProps {
 
 export function TaskCard({ task, routine, onPress, onComplete }: TaskCardProps) {
   const { settings } = useSettingsStore();
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   const getProgressText = () => {
     if (routine.goalType === 'completion') {
       return null;
     }
-    
+
     if (routine.goalType === 'counter') {
       return `${task.progress || 0}/${routine.goalValue} ${routine.goalUnit || ''}`;
     }
-    
+
     if (routine.goalType === 'duration') {
       return `${task.progress || 0}/${routine.goalValue} ${routine.goalUnit || 'min'}`;
     }
   };
-  
+
   return (
     <TouchableOpacity
       style={[
@@ -68,7 +79,7 @@ export function TaskCard({ task, routine, onPress, onComplete }: TaskCardProps) 
             )}
           </View>
         </View>
-        
+
         <TouchableOpacity
           style={[
             styles.checkButton,

@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-nat
 import { StyledText } from '@/components/StyledText';
 import { Button } from '@/components/Button';
 import { TaskCard } from '@/components/TaskCard';
+import { DateDisplay } from '@/components/DateDisplay';
 import { useRoutineStore } from '@/store/routineStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors } from '@/constants/colors';
@@ -10,33 +11,44 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { format, addDays, startOfDay, isSameDay } from 'date-fns';
 import { Task } from '@/types';
 import { Trash2, Edit, Plus } from 'lucide-react-native';
+import { useColorScheme } from 'react-native';
+import { formatDateByCalendar } from '@/utils/hijriUtils';
 
 export default function RoutineDetailScreen() {
   const { id, taskId } = useLocalSearchParams<{ id: string; taskId?: string }>();
   const router = useRouter();
   const { settings } = useSettingsStore();
   const { routines, tasks, updateRoutine, deleteRoutine, addTask, updateTask, getTasksForRoutine } = useRoutineStore();
-  
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   const routine = routines.find((r) => r.id === id);
   const routineTasks = getTasksForRoutine(id);
-  
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateRange, setDateRange] = useState<Date[]>([]);
-  
+
   useEffect(() => {
     if (!routine) {
       router.back();
       return;
     }
-    
+
     // Generate a range of dates for the date picker
     const today = startOfDay(new Date());
     const range = Array.from({ length: 14 }, (_, i) => addDays(today, i - 7));
     setDateRange(range);
-    
+
     // If a specific task is provided, find its date
     if (taskId) {
       const task = tasks.find((t) => t.id === taskId);
@@ -45,11 +57,11 @@ export default function RoutineDetailScreen() {
       }
     }
   }, [routine, taskId, tasks]);
-  
+
   if (!routine) {
     return null;
   }
-  
+
   const handleDeleteRoutine = () => {
     Alert.alert(
       'حذف الروتين',
@@ -67,17 +79,17 @@ export default function RoutineDetailScreen() {
       ]
     );
   };
-  
+
   const handleEditRoutine = () => {
     router.push(`/routine/edit/${id}`);
   };
-  
+
   const handleAddTask = () => {
     const dateString = format(selectedDate, 'yyyy-MM-dd');
-    
+
     // Check if a task already exists for this date
     const existingTask = routineTasks.find((task) => task.date === dateString);
-    
+
     if (existingTask) {
       Alert.alert(
         'المهمة موجودة',
@@ -86,17 +98,17 @@ export default function RoutineDetailScreen() {
       );
       return;
     }
-    
+
     addTask({
       routineId: id,
       date: dateString,
       completed: false,
       ...(routine.goalType !== 'completion' && { progress: 0 }),
     });
-    
+
     Alert.alert('تمت الإضافة', 'تم إضافة المهمة بنجاح.');
   };
-  
+
   const handleTaskComplete = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task) {
@@ -106,12 +118,12 @@ export default function RoutineDetailScreen() {
       });
     }
   };
-  
+
   const handleUpdateProgress = (task: Task) => {
     if (routine.goalType === 'completion') {
       return;
     }
-    
+
     // In a real app, this would open a modal to update progress
     Alert.alert(
       'تحديث التقدم',
@@ -119,44 +131,40 @@ export default function RoutineDetailScreen() {
       [{ text: 'موافق' }]
     );
   };
-  
+
   const getFrequencyText = () => {
     if (routine.frequency.type === 'daily') {
       return 'يومياً';
     }
-    
-    if (routine.frequency.type === 'weekly' && routine.frequency.timesPerWeek) {
-      return `${routine.frequency.timesPerWeek} مرات في الأسبوع`;
-    }
-    
+
     if (routine.frequency.type === 'specific-days' && routine.frequency.days) {
       const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
       return routine.frequency.days.map((day) => dayNames[day]).join('، ');
     }
-    
+
     return '';
   };
-  
+
   const getGoalText = () => {
     if (routine.goalType === 'completion') {
       return 'إنجاز بسيط';
     }
-    
+
     if (routine.goalType === 'counter' && routine.goalValue) {
       return `${routine.goalValue} ${routine.goalUnit || 'عنصر'}`;
     }
-    
+
     if (routine.goalType === 'duration' && routine.goalValue) {
       return `${routine.goalValue} ${routine.goalUnit || 'دقيقة'}`;
     }
-    
+
     return '';
   };
-  
+
   // Filter tasks for the selected date
   const selectedDateString = format(selectedDate, 'yyyy-MM-dd');
   const tasksForSelectedDate = routineTasks.filter((task) => task.date === selectedDateString);
-  
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
@@ -171,11 +179,11 @@ export default function RoutineDetailScreen() {
               {routine.icon}
             </StyledText>
           </View>
-          
+
           <StyledText variant="h1" style={styles.routineName}>
             {routine.name}
           </StyledText>
-          
+
           <View style={styles.detailsContainer}>
             <View style={styles.detailItem}>
               <StyledText variant="caption" color={themeColors.subtext}>
@@ -183,7 +191,7 @@ export default function RoutineDetailScreen() {
               </StyledText>
               <StyledText variant="body">{getFrequencyText()}</StyledText>
             </View>
-            
+
             <View style={styles.detailItem}>
               <StyledText variant="caption" color={themeColors.subtext}>
                 الهدف
@@ -191,7 +199,7 @@ export default function RoutineDetailScreen() {
               <StyledText variant="body">{getGoalText()}</StyledText>
             </View>
           </View>
-          
+
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, { borderColor: themeColors.border }]}
@@ -202,7 +210,7 @@ export default function RoutineDetailScreen() {
                 تعديل
               </StyledText>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[styles.actionButton, { borderColor: colors.light.error }]}
               onPress={handleDeleteRoutine}
@@ -214,12 +222,12 @@ export default function RoutineDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <View style={styles.datePickerSection}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             اختر التاريخ
           </StyledText>
-          
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -228,7 +236,7 @@ export default function RoutineDetailScreen() {
             {dateRange.map((date) => {
               const isSelected = isSameDay(date, selectedDate);
               const isToday = isSameDay(date, new Date());
-              
+
               return (
                 <TouchableOpacity
                   key={date.toISOString()}
@@ -251,6 +259,16 @@ export default function RoutineDetailScreen() {
                   >
                     {format(date, 'd')}
                   </StyledText>
+
+                  {/* إضافة التاريخ الهجري */}
+                  <StyledText
+                    variant="caption"
+                    color={isSelected ? '#FFFFFF' : themeColors.subtext}
+                    style={styles.hijriDate}
+                  >
+                    {formatDateByCalendar(date, 'hijri').split('، ')[1]?.split(' ')[0] || ''}
+                  </StyledText>
+
                   {isToday && (
                     <View
                       style={[
@@ -264,11 +282,22 @@ export default function RoutineDetailScreen() {
             })}
           </ScrollView>
         </View>
-        
+
         <View style={styles.tasksSection}>
           <View style={styles.tasksSectionHeader}>
-            <StyledText variant="h3">مهام {format(selectedDate, 'd MMMM، yyyy')}</StyledText>
-            
+            <View style={styles.tasksSectionTitleContainer}>
+              <StyledText variant="h3">المهام</StyledText>
+              <View style={styles.dateDisplayContainer}>
+                <DateDisplay
+                  date={selectedDate}
+                  showIcon={false}
+                />
+                <StyledText variant="caption" color={themeColors.subtext} style={styles.hijriDateDisplay}>
+                  {formatDateByCalendar(selectedDate, 'hijri')}
+                </StyledText>
+              </View>
+            </View>
+
             <TouchableOpacity
               style={[styles.addButton, { backgroundColor: themeColors.primary }]}
               onPress={handleAddTask}
@@ -279,7 +308,7 @@ export default function RoutineDetailScreen() {
               </StyledText>
             </TouchableOpacity>
           </View>
-          
+
           {tasksForSelectedDate.length > 0 ? (
             tasksForSelectedDate.map((task) => (
               <TaskCard
@@ -366,15 +395,20 @@ const styles = StyleSheet.create({
   },
   dateItem: {
     width: 60,
-    height: 80,
+    height: 90,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
     borderWidth: 1,
+    paddingVertical: 4,
   },
   selectedDateItem: {
     borderWidth: 0,
+  },
+  hijriDate: {
+    fontSize: 10,
+    marginTop: 2,
   },
   todayIndicator: {
     width: 6,
@@ -388,8 +422,18 @@ const styles = StyleSheet.create({
   tasksSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 16,
+  },
+  tasksSectionTitleContainer: {
+    flex: 1,
+    gap: 4,
+  },
+  dateDisplayContainer: {
+    gap: 2,
+  },
+  hijriDateDisplay: {
+    fontSize: 12,
   },
   addButton: {
     flexDirection: 'row',

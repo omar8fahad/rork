@@ -6,9 +6,10 @@ import { colors } from '@/constants/colors';
 
 interface SettingsState {
   settings: AppSettings;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: AppSettings['theme']) => void;
   setAccentColor: (color: string) => void;
   setFontSize: (size: number) => void;
+  setCalendarType: (type: 'gregorian' | 'hijri') => void;
   toggleNotifications: (enabled: boolean) => void;
   setDailyReminderTime: (time: string) => void;
 }
@@ -20,41 +21,46 @@ export const useSettingsStore = create<SettingsState>()(
         theme: 'light',
         accentColor: colors.light.primary,
         fontSize: 16,
+        calendarType: 'gregorian',
         notifications: {
           enabled: true,
           dailyReminderTime: '08:00',
         },
       },
-      setTheme: (theme) => 
+      setTheme: (theme) =>
         set((state) => ({
           settings: { ...state.settings, theme }
         })),
-      setAccentColor: (accentColor) => 
+      setAccentColor: (accentColor) =>
         set((state) => ({
           settings: { ...state.settings, accentColor }
         })),
-      setFontSize: (fontSize) => 
+      setFontSize: (fontSize) =>
         set((state) => ({
           settings: { ...state.settings, fontSize }
         })),
-      toggleNotifications: (enabled) => 
+      setCalendarType: (calendarType) =>
         set((state) => ({
-          settings: { 
-            ...state.settings, 
-            notifications: { 
-              ...state.settings.notifications, 
-              enabled 
-            } 
+          settings: { ...state.settings, calendarType }
+        })),
+      toggleNotifications: (enabled) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            notifications: {
+              ...state.settings.notifications,
+              enabled
+            }
           }
         })),
-      setDailyReminderTime: (dailyReminderTime) => 
+      setDailyReminderTime: (dailyReminderTime) =>
         set((state) => ({
-          settings: { 
-            ...state.settings, 
-            notifications: { 
-              ...state.settings.notifications, 
-              dailyReminderTime 
-            } 
+          settings: {
+            ...state.settings,
+            notifications: {
+              ...state.settings.notifications,
+              dailyReminderTime
+            }
           }
         })),
     }),

@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { colors } from '@/constants/colors';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useColorScheme } from 'react-native';
 
 interface ProgressBarProps {
   progress: number; // 0 to 100
@@ -14,11 +15,21 @@ export function ProgressBar({
   color,
 }: ProgressBarProps) {
   const { settings } = useSettingsStore();
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Determine the active theme
+  const getActiveTheme = () => {
+    if (settings.theme === 'system') {
+      return colorScheme || 'light';
+    }
+    return settings.theme;
+  };
+
+  const activeTheme = getActiveTheme();
+  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+
   const progressColor = color || settings.accentColor || themeColors.primary;
-  
+
   return (
     <View style={[styles.container, { height, backgroundColor: themeColors.border }]}>
       <View
