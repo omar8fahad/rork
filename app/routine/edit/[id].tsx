@@ -6,7 +6,6 @@ import { useRoutineStore } from '@/store/routineStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors } from '@/constants/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Check } from 'lucide-react-native';
 
 const ICONS = ['📚', '🏃', '💧', '🧘', '📝', '💪', '🍎', '😴', '🙏', '🧠'];
 const COLORS = [
@@ -24,7 +23,6 @@ const COLORS = [
 
 const FREQUENCY_TYPES = [
   { id: 'daily', label: 'يومياً' },
-  { id: 'weekly', label: 'أسبوعياً' },
   { id: 'specific-days', label: 'أيام محددة' },
 ];
 
@@ -49,46 +47,60 @@ export default function EditRoutineScreen() {
   const router = useRouter();
   const { settings } = useSettingsStore();
   const { routines, updateRoutine } = useRoutineStore();
-  
+
   const theme = settings.theme === 'system' ? 'light' : settings.theme;
   const themeColors = colors[theme];
-  
+
   const routine = routines.find(r => r.id === id);
-  
+
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
-  const [frequencyType, setFrequencyType] = useState<'daily' | 'weekly' | 'specific-days'>('daily');
+  const [frequencyType, setFrequencyType] = useState<'daily' | 'specific-days'>('daily');
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [timesPerWeek, setTimesPerWeek] = useState('3');
   const [goalType, setGoalType] = useState<'completion' | 'counter' | 'duration'>('completion');
   const [goalValue, setGoalValue] = useState('');
   const [goalUnit, setGoalUnit] = useState('');
-  
+
   useEffect(() => {
     if (routine) {
       setName(routine.name);
       setSelectedIcon(routine.icon);
       setSelectedColor(routine.color);
-      setFrequencyType(routine.frequency.type);
+
+      // Handle frequency type migration - convert old 'weekly' type to 'daily'
+      const routineFrequencyType = routine.frequency.type as string;
+      if (routineFrequencyType === 'weekly') {
+        setFrequencyType('daily');
+      } else if (routineFrequencyType === 'daily' || routineFrequencyType === 'specific-days') {
+        setFrequencyType(routineFrequencyType);
+      } else {
+        // Default fallback
+        setFrequencyType('daily');
+      }
+
       setSelectedDays(routine.frequency.days || []);
-      setTimesPerWeek(routine.frequency.timesPerWeek?.toString() || '3');
       setGoalType(routine.goalType);
       setGoalValue(routine.goalValue?.toString() || '');
       setGoalUnit(routine.goalUnit || '');
     }
   }, [routine]);
-  
+
   if (!routine) {
     return null;
   }
-  
+
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert('خطأ', 'يرجى إدخال اسم الروتين');
       return;
     }
-    
+
+    if (frequencyType === 'specific-days' && selectedDays.length === 0) {
+      Alert.alert('خطأ', 'يرجى اختيار يوم واحد على الأقل');
+      return;
+    }
+
     updateRoutine(id, {
       name: name.trim(),
       icon: selectedIcon,
@@ -96,7 +108,6 @@ export default function EditRoutineScreen() {
       frequency: {
         type: frequencyType,
         ...(frequencyType === 'specific-days' && { days: selectedDays }),
-        ...(frequencyType === 'weekly' && { timesPerWeek: parseInt(timesPerWeek, 10) }),
       },
       goalType,
       ...(goalType !== 'completion' && {
@@ -104,10 +115,10 @@ export default function EditRoutineScreen() {
         goalUnit: goalUnit.trim(),
       }),
     });
-    
+
     router.back();
   };
-  
+
   const toggleDay = (dayId: number) => {
     if (selectedDays.includes(dayId)) {
       setSelectedDays(selectedDays.filter((id) => id !== dayId));
@@ -115,7 +126,7 @@ export default function EditRoutineScreen() {
       setSelectedDays([...selectedDays, dayId]);
     }
   };
-  
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
@@ -123,7 +134,7 @@ export default function EditRoutineScreen() {
           <StyledText variant="h3" style={styles.sectionTitle}>
             المعلومات الأساسية
           </StyledText>
-          
+
           <View style={[styles.inputContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
             <TextInput
               style={[styles.input, { color: themeColors.text }]}
@@ -134,12 +145,12 @@ export default function EditRoutineScreen() {
             />
           </View>
         </View>
-        
+
         <View style={styles.section}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             اختر أيقونة
           </StyledText>
-          
+
           <View style={styles.iconGrid}>
             {ICONS.map((icon) => (
               <TouchableOpacity
@@ -160,12 +171,12 @@ export default function EditRoutineScreen() {
             ))}
           </View>
         </View>
-        
+
         <View style={styles.section}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             اختر لوناً
           </StyledText>
-          
+
           <View style={styles.colorGrid}>
             {COLORS.map((color) => (
               <TouchableOpacity
@@ -180,12 +191,12 @@ export default function EditRoutineScreen() {
             ))}
           </View>
         </View>
-        
+
         <View style={styles.section}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             التكرار
           </StyledText>
-          
+
           <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
             {FREQUENCY_TYPES.map((type, index) => (
               <View key={type.id}>
@@ -213,53 +224,45 @@ export default function EditRoutineScreen() {
               </View>
             ))}
           </View>
-          
+
           {frequencyType === 'specific-days' && (
             <View style={styles.daysContainer}>
-              {DAYS.map((day) => (
-                <TouchableOpacity
-                  key={day.id}
-                  style={[
-                    styles.dayItem,
-                    {
-                      backgroundColor: selectedDays.includes(day.id)
-                        ? selectedColor
-                        : themeColors.card,
-                      borderColor: themeColors.border,
-                    },
-                  ]}
-                  onPress={() => toggleDay(day.id)}
-                >
-                  <StyledText
-                    variant="button"
-                    color={selectedDays.includes(day.id) ? '#FFFFFF' : themeColors.text}
+              <StyledText variant="caption" color={themeColors.subtext} style={styles.daysLabel}>
+                اختر الأيام التي تريد تكرار الروتين فيها:
+              </StyledText>
+              <View style={styles.daysGrid}>
+                {DAYS.map((day) => (
+                  <TouchableOpacity
+                    key={day.id}
+                    style={[
+                      styles.dayItem,
+                      {
+                        backgroundColor: selectedDays.includes(day.id)
+                          ? selectedColor
+                          : themeColors.card,
+                        borderColor: themeColors.border,
+                      },
+                    ]}
+                    onPress={() => toggleDay(day.id)}
                   >
-                    {day.label}
-                  </StyledText>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-          
-          {frequencyType === 'weekly' && (
-            <View style={[styles.inputContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-              <TextInput
-                style={[styles.input, { color: themeColors.text }]}
-                placeholder="مرات في الأسبوع"
-                placeholderTextColor={themeColors.subtext}
-                value={timesPerWeek}
-                onChangeText={setTimesPerWeek}
-                keyboardType="numeric"
-              />
+                    <StyledText
+                      variant="button"
+                      color={selectedDays.includes(day.id) ? '#FFFFFF' : themeColors.text}
+                    >
+                      {day.label}
+                    </StyledText>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           )}
         </View>
-        
+
         <View style={styles.section}>
           <StyledText variant="h3" style={styles.sectionTitle}>
             نوع الهدف
           </StyledText>
-          
+
           <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
             {GOAL_TYPES.map((type, index) => (
               <View key={type.id}>
@@ -287,7 +290,7 @@ export default function EditRoutineScreen() {
               </View>
             ))}
           </View>
-          
+
           {(goalType === 'counter' || goalType === 'duration') && (
             <View style={styles.goalValueContainer}>
               <View
@@ -306,7 +309,7 @@ export default function EditRoutineScreen() {
                   keyboardType="numeric"
                 />
               </View>
-              
+
               <View
                 style={[
                   styles.inputContainer,
@@ -325,7 +328,7 @@ export default function EditRoutineScreen() {
             </View>
           )}
         </View>
-        
+
         <View style={styles.buttonContainer}>
           <Button
             title="حفظ التغييرات"
@@ -333,7 +336,7 @@ export default function EditRoutineScreen() {
             variant="primary"
             size="large"
             fullWidth
-            disabled={!name.trim()}
+            disabled={!name.trim() || (frequencyType === 'specific-days' && selectedDays.length === 0)}
           />
         </View>
       </View>
@@ -431,9 +434,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   daysContainer: {
+    marginTop: 12,
+  },
+  daysLabel: {
+    marginBottom: 8,
+  },
+  daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
     marginHorizontal: -4,
   },
   dayItem: {

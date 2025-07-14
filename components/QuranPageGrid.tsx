@@ -24,17 +24,17 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
   const { settings } = useSettingsStore();
   const theme = settings.theme === 'system' ? 'light' : settings.theme;
   const themeColors = colors[theme];
-  
+
   const [expandedJuz, setExpandedJuz] = useState<Set<number>>(new Set([1])); // الجزء الأول مفتوح افتراضياً
-  
+
   // تجميع الصفحات في أجزاء
   const createJuzSections = (): JuzSection[] => {
     const sections: JuzSection[] = [];
-    
+
     for (let juzNumber = 1; juzNumber <= 30; juzNumber++) {
       let startPage: number;
       let endPage: number;
-      
+
       if (juzNumber === 1) {
         // الجزء الأول: 22 صفحة (1-22)
         startPage = 1;
@@ -48,9 +48,9 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
         startPage = 22 + (juzNumber - 2) * 20 + 1;
         endPage = startPage + 19;
       }
-      
+
       const juzPages = pages.filter(page => page.id >= startPage && page.id <= endPage);
-      
+
       sections.push({
         id: juzNumber,
         name: `الجزء ${juzNumber}`,
@@ -59,12 +59,12 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
         pages: juzPages,
       });
     }
-    
+
     return sections;
   };
-  
+
   const juzSections = createJuzSections();
-  
+
   const toggleJuz = (juzId: number) => {
     const newExpanded = new Set(expandedJuz);
     if (newExpanded.has(juzId)) {
@@ -74,7 +74,7 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
     }
     setExpandedJuz(newExpanded);
   };
-  
+
   const getPageColor = (page: QuranPage) => {
     // Show different colors based on active tab and page status
     switch (activeTab) {
@@ -88,11 +88,11 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
         if (page.isRevised) return themeColors.quranRevised;
         break;
     }
-    
+
     // Default color for unset pages
     return themeColors.card;
   };
-  
+
   const getTextColor = (page: QuranPage) => {
     // Show white text on colored backgrounds
     switch (activeTab) {
@@ -106,10 +106,10 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
         if (page.isRevised) return '#FFFFFF';
         break;
     }
-    
+
     return themeColors.text;
   };
-  
+
   const getJuzStats = (juz: JuzSection) => {
     let count = 0;
     juz.pages.forEach(page => {
@@ -127,7 +127,7 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
     });
     return count;
   };
-  
+
   const renderPage = (page: QuranPage) => (
     <TouchableOpacity
       key={page.id}
@@ -150,12 +150,12 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
       </StyledText>
     </TouchableOpacity>
   );
-  
+
   const renderJuzSection = (juz: JuzSection) => {
     const isExpanded = expandedJuz.has(juz.id);
     const stats = getJuzStats(juz);
     const totalPages = juz.pages.length;
-    
+
     return (
       <View key={juz.id} style={[styles.juzContainer, { borderColor: themeColors.border }]}>
         <TouchableOpacity
@@ -172,14 +172,14 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
                 الصفحات {juz.startPage} - {juz.endPage}
               </StyledText>
             </View>
-            
+
             <View style={styles.juzStatsContainer}>
               <View style={[styles.statsChip, { backgroundColor: getStatsChipColor() }]}>
                 <StyledText variant="caption" color="#FFFFFF">
                   {stats}/{totalPages}
                 </StyledText>
               </View>
-              
+
               {isExpanded ? (
                 <ChevronUp size={20} color={themeColors.subtext} />
               ) : (
@@ -188,7 +188,7 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
             </View>
           </View>
         </TouchableOpacity>
-        
+
         {isExpanded && (
           <View style={styles.pagesContainer}>
             <View style={styles.pagesGrid}>
@@ -199,7 +199,7 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
       </View>
     );
   };
-  
+
   const getStatsChipColor = () => {
     switch (activeTab) {
       case 'read':
@@ -212,7 +212,7 @@ export function QuranPageGrid({ pages, onPagePress, activeTab }: QuranPageGridPr
         return themeColors.primary;
     }
   };
-  
+
   return (
     <View style={styles.container}>
       {juzSections.map(renderJuzSection)}
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   juzHeader: {
-    padding: 16,
+    padding: 12,
   },
   juzHeaderContent: {
     flexDirection: 'row',
@@ -262,8 +262,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pagesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
   pagesGrid: {
     flexDirection: 'row',
@@ -272,9 +272,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   pageItem: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,

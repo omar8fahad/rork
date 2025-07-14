@@ -4,9 +4,8 @@ export type Routine = {
   icon: string;
   color: string;
   frequency: {
-    type: 'daily' | 'weekly' | 'specific-days';
+    type: 'daily' | 'specific-days';
     days?: number[]; // 0 = Sunday, 1 = Monday, etc.
-    timesPerWeek?: number;
   };
   goalType: 'completion' | 'counter' | 'duration';
   goalValue?: number; // For counter or duration
@@ -51,9 +50,10 @@ export type Book = {
 };
 
 export type AppSettings = {
-  theme: 'light' | 'dark' | 'system';
+  theme: 'light' | 'dark' | 'system' | 'andalusianMosaic' | 'qiblaLines' | 'palmBreeze' | 'andalusianNights' | 'desertDawn';
   accentColor: string;
   fontSize: number;
+  calendarType: 'gregorian' | 'hijri';
   notifications: {
     enabled: boolean;
     dailyReminderTime: string; // HH:MM format
