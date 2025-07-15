@@ -18,8 +18,8 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       settings: {
-        theme: 'light',
-        accentColor: colors.light.primary,
+        theme: 'andalusianMosaic',
+        accentColor: colors.andalusianMosaic.primary,
         fontSize: 16,
         calendarType: 'gregorian',
         notifications: {

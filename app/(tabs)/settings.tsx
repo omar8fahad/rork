@@ -4,7 +4,7 @@ import { StyledText } from '@/components/StyledText';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, themeNames, ThemeName } from '@/constants/colors';
 import { useColorScheme } from 'react-native';
-import { Moon, Sun, Smartphone, Bell, Database, ArrowUpDown, Calendar, Palette } from 'lucide-react-native';
+import { Bell, Database, ArrowUpDown, Calendar, Palette } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
@@ -19,37 +19,63 @@ export default function SettingsScreen() {
     setDailyReminderTime
   } = useSettingsStore();
 
-  // Determine the active theme
-  const getActiveTheme = () => {
-    if (settings.theme === 'system') {
-      return colorScheme || 'light';
-    }
-    return settings.theme;
-  };
+  const themeColors = colors[settings.theme as keyof typeof colors] || colors.andalusianMosaic;
 
-  const activeTheme = getActiveTheme();
-  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
-
-  const themes = [
-    { id: 'light', name: themeNames.light, icon: Sun },
-    { id: 'dark', name: themeNames.dark, icon: Moon },
-    { id: 'system', name: 'تلقائي', icon: Smartphone },
-    { id: 'andalusianMosaic', name: themeNames.andalusianMosaic, icon: Palette },
-    { id: 'qiblaLines', name: themeNames.qiblaLines, icon: Palette },
-    { id: 'palmBreeze', name: themeNames.palmBreeze, icon: Palette },
-    { id: 'andalusianNights', name: themeNames.andalusianNights, icon: Palette },
-    { id: 'desertDawn', name: themeNames.desertDawn, icon: Palette },
+  // تجميع الهويات البصرية
+  const dayThemes = [
+    { id: 'andalusianMosaic', name: themeNames.andalusianMosaic },
+    { id: 'qiblaLines', name: themeNames.qiblaLines },
+    { id: 'palmBreeze', name: themeNames.palmBreeze },
+    { id: 'andalusianNights', name: themeNames.andalusianNights },
+    { id: 'desertDawn', name: themeNames.desertDawn },
   ];
 
+  const nightThemes = [
+    { id: 'twilightMagic', name: themeNames.twilightMagic },
+    { id: 'moonGlow', name: themeNames.moonGlow },
+    { id: 'desertNights', name: themeNames.desertNights },
+    { id: 'forestShadows', name: themeNames.forestShadows },
+    { id: 'nightWaves', name: themeNames.nightWaves },
+  ];
+
+  // ألوان التمييز المحدثة مع ألوان من الهويات البصرية
   const accentColors = [
-    { name: 'بنفسجي', value: colors.light.primary },
-    { name: 'أخضر', value: colors.light.success },
-    { name: 'أصفر', value: colors.light.warning },
-    { name: 'أحمر', value: colors.light.error },
-    { name: 'وردي', value: colors.light.pink },
-    { name: 'برتقالي', value: colors.light.orange },
-    { name: 'سماوي', value: colors.light.cyan },
-    { name: 'بنفسجي فاتح', value: colors.light.violet },
+    // الألوان الأساسية
+    { name: 'بنفسجي', value: '#6366F1' },
+    { name: 'أخضر', value: '#10B981' },
+    { name: 'أصفر', value: '#F59E0B' },
+    { name: 'أحمر', value: '#EF4444' },
+    { name: 'وردي', value: '#EC4899' },
+    { name: 'برتقالي', value: '#F97316' },
+    { name: 'سماوي', value: '#06B6D4' },
+    { name: 'بنفسجي فاتح', value: '#7C3AED' },
+
+    // ألوان من الهويات النهارية
+    { name: 'أزرق فينيق', value: colors.andalusianMosaic.primary },
+    { name: 'فيروزي فاتح', value: colors.andalusianMosaic.secondary },
+    { name: 'ذهبي باهت', value: colors.andalusianMosaic.warning },
+    { name: 'أخضر مسجدي', value: colors.qiblaLines.primary },
+    { name: 'أخضر نعناعي', value: colors.qiblaLines.secondary },
+    { name: 'بني رطب', value: colors.palmBreeze.primary },
+    { name: 'أخضر نخلي', value: colors.palmBreeze.secondary },
+    { name: 'أصفر رطب', value: colors.palmBreeze.warning },
+    { name: 'أزرق سمائي', value: colors.andalusianNights.primary },
+    { name: 'بنفسجي هادئ', value: colors.andalusianNights.secondary },
+    { name: 'برتقالي شروق', value: colors.desertDawn.primary },
+    { name: 'وردي شاحب', value: colors.desertDawn.secondary },
+    { name: 'بني رملي', value: colors.desertDawn.success },
+
+    // ألوان من الهويات الليلية
+    { name: 'ليلكي بارد', value: colors.twilightMagic.primary },
+    { name: 'رمادي دخاني', value: colors.twilightMagic.secondary },
+    { name: 'فضي قمري', value: colors.moonGlow.primary },
+    { name: 'أزرق فحمي', value: colors.moonGlow.secondary },
+    { name: 'برتقالي غروب', value: colors.desertNights.primary },
+    { name: 'ستيل رمادي', value: colors.desertNights.secondary },
+    { name: 'أخضر فسفوري', value: colors.forestShadows.primary },
+    { name: 'رمادي زيتي', value: colors.forestShadows.secondary },
+    { name: 'فيروزي عميق', value: colors.nightWaves.primary },
+    { name: 'أزرق بحري', value: colors.nightWaves.secondary },
   ];
 
   const fontSizes = [
@@ -134,9 +160,58 @@ export default function SettingsScreen() {
   };
 
   const getThemePreviewColors = (themeName: string) => {
-    const theme = colors[themeName as keyof typeof colors] || colors.light;
+    const theme = colors[themeName as keyof typeof colors] || colors.andalusianMosaic;
     return [theme.primary, theme.secondary, theme.success];
   };
+
+  const renderThemeSection = (themes: any[], title: string) => (
+    <View style={styles.themeSection}>
+      <StyledText variant="h3" style={styles.subsectionTitle}>
+        {title}
+      </StyledText>
+
+      <View style={styles.themesGrid}>
+        {themes.map((theme) => {
+          const previewColors = getThemePreviewColors(theme.id);
+
+          return (
+            <TouchableOpacity
+              key={theme.id}
+              style={[
+                styles.themeCard,
+                {
+                  backgroundColor: themeColors.card,
+                  borderColor: settings.theme === theme.id ? themeColors.primary : themeColors.border,
+                  borderWidth: settings.theme === theme.id ? 2 : 1,
+                },
+              ]}
+              onPress={() => setTheme(theme.id as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.themePreview}>
+                {previewColors.map((color, colorIndex) => (
+                  <View
+                    key={colorIndex}
+                    style={[styles.previewColor, { backgroundColor: color }]}
+                  />
+                ))}
+              </View>
+
+              <StyledText variant="caption" numberOfLines={2} style={styles.themeName}>
+                {theme.name}
+              </StyledText>
+
+              {settings.theme === theme.id && (
+                <View
+                  style={[styles.selectedIndicator, { backgroundColor: themeColors.primary }]}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -152,53 +227,8 @@ export default function SettingsScreen() {
           الهوية البصرية
         </StyledText>
 
-        <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          {themes.map((theme, index) => {
-            const IconComponent = theme.icon;
-            const previewColors = getThemePreviewColors(theme.id);
-
-            return (
-              <View key={theme.id}>
-                <TouchableOpacity
-                  style={styles.themeItem}
-                  onPress={() => setTheme(theme.id as any)}
-                >
-                  <View style={styles.themeInfo}>
-                    <View style={styles.themeHeader}>
-                      <IconComponent size={20} color={themeColors.text} style={styles.themeIcon} />
-                      <StyledText variant="body">{theme.name}</StyledText>
-                    </View>
-
-                    <View style={styles.themePreview}>
-                      {previewColors.map((color, colorIndex) => (
-                        <View
-                          key={colorIndex}
-                          style={[styles.previewColor, { backgroundColor: color }]}
-                        />
-                      ))}
-                    </View>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.radioButton,
-                      settings.theme === theme.id && { borderColor: themeColors.primary },
-                    ]}
-                  >
-                    {settings.theme === theme.id && (
-                      <View
-                        style={[styles.radioButtonInner, { backgroundColor: themeColors.primary }]}
-                      />
-                    )}
-                  </View>
-                </TouchableOpacity>
-                {index < themes.length - 1 && (
-                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-                )}
-              </View>
-            );
-          })}
-        </View>
+        {renderThemeSection(dayThemes, 'الهويات النهارية')}
+        {renderThemeSection(nightThemes, 'الهويات الليلية')}
 
         <StyledText variant="h3" style={styles.subsectionTitle}>
           لون التمييز
@@ -355,7 +385,7 @@ export default function SettingsScreen() {
           <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
 
           <TouchableOpacity style={styles.settingItem} onPress={handleResetData}>
-            <StyledText variant="body" color={colors.light.error}>
+            <StyledText variant="body" color="#EF4444">
               إعادة تعيين جميع البيانات
             </StyledText>
           </TouchableOpacity>
@@ -393,6 +423,51 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 12,
   },
+  themeSection: {
+    marginBottom: 16,
+  },
+  themesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  themeCard: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  themePreview: {
+    flexDirection: 'row',
+    gap: 2,
+    marginBottom: 4,
+  },
+  previewColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  themeName: {
+    textAlign: 'center',
+    fontSize: 10,
+    lineHeight: 12,
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
   card: {
     borderRadius: 12,
     borderWidth: 1,
@@ -415,32 +490,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  themeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  themeInfo: {
-    flex: 1,
-  },
-  themeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  themeIcon: {
-    marginRight: 12,
-  },
-  themePreview: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  previewColor: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-  },
   divider: {
     height: 1,
     width: '100%',
@@ -448,14 +497,15 @@ const styles = StyleSheet.create({
   colorOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     marginBottom: 16,
     gap: 8,
   },
   colorOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    margin: 2,
   },
   selectedColorOption: {
     borderWidth: 3,

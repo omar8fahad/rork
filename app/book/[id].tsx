@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2, Edit } from 'lucide-react-native';
 import { useColorScheme } from 'react-native';
 import { formatDateByCalendar } from '@/utils/hijriUtils';
+import { getImageSource } from '@/utils/imageStorage';
 
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -19,16 +20,7 @@ export default function BookDetailScreen() {
   const { books, updateBook, deleteBook, updateReadingProgress } = useBookStore();
   const colorScheme = useColorScheme();
 
-  // Determine the active theme
-  const getActiveTheme = () => {
-    if (settings.theme === 'system') {
-      return colorScheme || 'light';
-    }
-    return settings.theme;
-  };
-
-  const activeTheme = getActiveTheme();
-  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+  const themeColors = colors[settings.theme as keyof typeof colors] || colors.andalusianMosaic;
 
   const book = books.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(book?.currentPage.toString() || '0');
@@ -38,6 +30,7 @@ export default function BookDetailScreen() {
   }
 
   const progress = (book.currentPage / book.totalPages) * 100;
+  const imageSource = getImageSource(book);
 
   const handleDeleteBook = () => {
     Alert.alert(
@@ -77,8 +70,8 @@ export default function BookDetailScreen() {
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
         <View style={styles.header}>
-          {book.coverUrl ? (
-            <Image source={{ uri: book.coverUrl }} style={styles.cover} />
+          {imageSource ? (
+            <Image source={{ uri: imageSource }} style={styles.cover} />
           ) : (
             <View
               style={[styles.coverPlaceholder, { backgroundColor: themeColors.secondary }]}
@@ -126,11 +119,11 @@ export default function BookDetailScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, { borderColor: colors.light.error }]}
+            style={[styles.actionButton, { borderColor: '#EF4444' }]}
             onPress={handleDeleteBook}
           >
-            <Trash2 size={20} color={colors.light.error} />
-            <StyledText variant="button" color={colors.light.error} style={styles.actionButtonText}>
+            <Trash2 size={20} color="#EF4444" />
+            <StyledText variant="button" color="#EF4444" style={styles.actionButtonText}>
               حذف
             </StyledText>
           </TouchableOpacity>

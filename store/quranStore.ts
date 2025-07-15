@@ -61,8 +61,7 @@ export const useQuranStore = create<QuranState>()(
               return {
                 ...page,
                 isMemorized,
-                // إذا تم حفظ الصفحة، تصبح مقروءة تلقائياً
-                ...(isMemorized && { isRead: true, lastRead: now }),
+                // لا تسجل التلاوة تلقائياً عند الحفظ
                 ...(isMemorized && { lastMemorized: now }),
                 // إذا تم إلغاء الحفظ، يتم إلغاء المراجعة أيضاً
                 ...(!isMemorized && { isRevised: false }),
@@ -93,7 +92,7 @@ export const useQuranStore = create<QuranState>()(
         const totalMemorized = pages.filter((p) => p.isMemorized).length;
         const totalRevised = pages.filter((p) => p.isRevised).length;
         const completionPercentage = (totalMemorized / 604) * 100;
-        
+
         return {
           totalRead,
           totalMemorized,
@@ -105,7 +104,7 @@ export const useQuranStore = create<QuranState>()(
         const memorizedPages = get().pages.filter(
           (p) => p.isMemorized
         );
-        
+
         // Sort by last revised date (oldest first)
         return [...memorizedPages]
           .sort((a, b) => {
@@ -135,10 +134,10 @@ export const useQuranStore = create<QuranState>()(
             state?.initializePages();
           } else {
             // Migrate old data structure if needed
-            const needsMigration = state.pages.some((page: any) => 
+            const needsMigration = state.pages.some((page: any) =>
               page.status !== undefined
             );
-            
+
             if (needsMigration) {
               const migratedPages = state.pages.map((page: any) => ({
                 id: page.id,
@@ -149,7 +148,7 @@ export const useQuranStore = create<QuranState>()(
                 lastMemorized: page.lastMemorized,
                 lastRevised: page.lastRevised,
               }));
-              
+
               state.pages = migratedPages;
             }
           }

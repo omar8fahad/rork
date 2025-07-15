@@ -1,57 +1,7 @@
-// Enhanced color palette with five beautiful Arabic/Islamic visual identities
+// Enhanced color palette with visual identities only (removed basic themes)
 export const colors = {
-  light: {
-    background: '#FFFFFF',
-    card: '#F8F9FA',
-    text: '#1A1A1A',
-    subtext: '#6E7A8A',
-    border: '#E5E7EB',
-    primary: '#6366F1', // Indigo
-    secondary: '#A5B4FC', // Light indigo
-    success: '#10B981', // Emerald
-    warning: '#F59E0B', // Amber
-    error: '#EF4444', // Red
-    info: '#3B82F6', // Blue
-    // Quran specific colors
-    quranRead: '#60A5FA', // Blue for read pages
-    quranMemorized: '#10B981', // Emerald for memorized pages
-    quranRevised: '#F59E0B', // Amber for revised pages
-    // Additional beautiful colors
-    purple: '#8B5CF6',
-    pink: '#EC4899',
-    teal: '#14B8A6',
-    orange: '#F97316',
-    lime: '#84CC16',
-    cyan: '#06B6D4',
-    rose: '#F43F5E',
-    violet: '#7C3AED',
-  },
-  dark: {
-    background: '#0F0F0F',
-    card: '#1A1A1A',
-    text: '#F8F9FA',
-    subtext: '#A0AEC0',
-    border: '#2D3748',
-    primary: '#818CF8', // Lighter indigo for dark mode
-    secondary: '#A5B4FC', // Light indigo
-    success: '#34D399', // Light emerald
-    warning: '#FBBF24', // Light amber
-    error: '#F87171', // Light red
-    info: '#60A5FA', // Light blue
-    // Quran specific colors
-    quranRead: '#60A5FA', // Blue for read pages
-    quranMemorized: '#34D399', // Light emerald for memorized pages
-    quranRevised: '#FBBF24', // Light amber for revised pages
-    // Additional beautiful colors
-    purple: '#A78BFA',
-    pink: '#F472B6',
-    teal: '#2DD4BF',
-    orange: '#FB923C',
-    lime: '#A3E635',
-    cyan: '#22D3EE',
-    rose: '#FB7185',
-    violet: '#8B5CF6',
-  },
+  // === الهويات النهارية ===
+
   // 1. فسيفساء الأندلس
   andalusianMosaic: {
     background: '#F5F1E8', // عاجي ناعم
@@ -181,18 +131,156 @@ export const colors = {
     cyan: '#06B6D4',
     rose: '#F43F5E',
     violet: '#7C3AED',
+  },
+
+  // === الهويات الليلية ===
+
+  // 1. سِحر الغُسق
+  twilightMagic: {
+    background: '#1F2E3F', // كُحلي فاتح
+    card: '#2A3B4F',
+    text: '#E6E8EA', // أبيض لؤلؤي
+    subtext: '#8A79A6', // ليلكي بارد
+    border: '#4A5A6A', // رمادي دخاني
+    primary: '#8A79A6', // ليلكي بارد
+    secondary: '#4A5A6A', // رمادي دخاني
+    success: '#8A79A6',
+    warning: '#4A5A6A',
+    error: '#E57373',
+    info: '#8A79A6',
+    // Quran specific colors
+    quranRead: '#8A79A6', // ليلكي للتلاوة
+    quranMemorized: '#0A1B2D', // أزرق غسق للحفظ
+    quranRevised: '#4A5A6A', // رمادي دخاني للمراجعة
+    purple: '#8A79A6',
+    pink: '#C48FB1',
+    teal: '#5A8A8A',
+    orange: '#D4956B',
+    lime: '#9ABA5A',
+    cyan: '#5A9ABA',
+    rose: '#C48F8F',
+    violet: '#8A79A6',
+  },
+  // 2. وميض القمر
+  moonGlow: {
+    background: '#0D1117', // كحلي داكن جداً
+    card: '#1A1F26',
+    text: '#E6E8EA', // أبيض لؤلؤي
+    subtext: '#BFC7D1', // فضي قمري
+    border: '#2C303A', // أزرق فحمي
+    primary: '#BFC7D1', // فضي قمري
+    secondary: '#2C303A', // أزرق فحمي
+    success: '#BFC7D1',
+    warning: '#E6E8EA',
+    error: '#E57373',
+    info: '#BFC7D1',
+    // Quran specific colors
+    quranRead: '#BFC7D1', // فضي قمري للتلاوة
+    quranMemorized: '#E6E8EA', // أبيض لؤلؤي للحفظ
+    quranRevised: '#2C303A', // أزرق فحمي للمراجعة
+    purple: '#A6A1C7',
+    pink: '#D1BFC7',
+    teal: '#7ABFC7',
+    orange: '#D1A67A',
+    lime: '#A6D17A',
+    cyan: '#7AC7D1',
+    rose: '#D17A7A',
+    violet: '#A6A1C7',
+  },
+  // 3. ليالي الصحراء
+  desertNights: {
+    background: '#1A132A', // بنفسجي غامق
+    card: '#2A1F3A',
+    text: '#E6D4B8', // بيج فاتح
+    subtext: '#CC7A4B', // برتقالي غروب
+    border: '#7A7D85', // ستيل رمادي
+    primary: '#CC7A4B', // برتقالي غروب
+    secondary: '#7A7D85', // ستيل رمادي
+    success: '#CC7A4B',
+    warning: '#7A7D85',
+    error: '#E57373',
+    info: '#CC7A4B',
+    // Quran specific colors
+    quranRead: '#CC7A4B', // برتقالي غروب للتلاوة
+    quranMemorized: '#2E2B3C', // كحلي رملي للحفظ
+    quranRevised: '#7A7D85', // ستيل رمادي للمراجعة
+    purple: '#8A7A9E',
+    pink: '#CC8FA6',
+    teal: '#4BCC9E',
+    orange: '#CC7A4B',
+    lime: '#9ECC4B',
+    cyan: '#4B9ECC',
+    rose: '#CC4B7A',
+    violet: '#8A7A9E',
+  },
+  // 4. ظلال الغابة الليلية
+  forestShadows: {
+    background: '#0A0F0D', // أسود مخضر
+    card: '#1A2B1D',
+    text: '#E8F5E8', // أبيض مخضر
+    subtext: '#6BAE6B', // أخضر فسفوري خافت
+    border: '#475047', // رمادي زيتي
+    primary: '#6BAE6B', // أخضر فسفوري خافت
+    secondary: '#475047', // رمادي زيتي
+    success: '#6BAE6B',
+    warning: '#AE9E6B',
+    error: '#AE6B6B',
+    info: '#6BAE6B',
+    // Quran specific colors
+    quranRead: '#6BAE6B', // أخضر فسفوري للتلاوة
+    quranMemorized: '#1E2B29', // أخضر داكن أرجواني للحفظ
+    quranRevised: '#475047', // رمادي زيتي للمراجعة
+    purple: '#8A6BAE',
+    pink: '#AE6B8A',
+    teal: '#6BAEAE',
+    orange: '#AE8A6B',
+    lime: '#8AAE6B',
+    cyan: '#6B8AAE',
+    rose: '#AE6B6B',
+    violet: '#8A6BAE',
+  },
+  // 5. أمواج الليل
+  nightWaves: {
+    background: '#0E1F33', // كحلي سلس
+    card: '#1A2E43',
+    text: '#E6F3F7', // أبيض مائي
+    subtext: '#3AA7A6', // فيروزي عميق
+    border: '#225E8A', // أزرق بحري متوسط
+    primary: '#3AA7A6', // فيروزي عميق
+    secondary: '#225E8A', // أزرق بحري متوسط
+    success: '#3AA7A6',
+    warning: '#A6A73A',
+    error: '#A63A3A',
+    info: '#3AA7A6',
+    // Quran specific colors
+    quranRead: '#3AA7A6', // فيروزي عميق للتلاوة
+    quranMemorized: '#042A4B', // أزرق بحري غامق للحفظ
+    quranRevised: '#225E8A', // أزرق بحري متوسط للمراجعة
+    purple: '#7A3AA6',
+    pink: '#A63A7A',
+    teal: '#3AA7A6',
+    orange: '#A67A3A',
+    lime: '#7AA63A',
+    cyan: '#3A7AA6',
+    rose: '#A63A3A',
+    violet: '#7A3AA6',
   }
 };
 
 // Theme names in Arabic
 export const themeNames = {
-  light: 'فاتح',
-  dark: 'داكن',
+  // الهويات النهارية
   andalusianMosaic: 'فسيفساء الأندلس',
   qiblaLines: 'خطوط القِبلة',
   palmBreeze: 'أريج النخيل',
   andalusianNights: 'ليالي الأندلس',
   desertDawn: 'فجر الصحراء',
+  // الهويات الليلية
+  twilightMagic: 'سِحر الغُسق',
+  moonGlow: 'وميض القمر',
+  desertNights: 'ليالي الصحراء',
+  forestShadows: 'ظلال الغابة الليلية',
+  nightWaves: 'أمواج الليل',
 };
 
 export type ThemeName = keyof typeof colors;

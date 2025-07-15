@@ -21,16 +21,7 @@ export default function RoutineDetailScreen() {
   const { routines, tasks, updateRoutine, deleteRoutine, addTask, updateTask, getTasksForRoutine } = useRoutineStore();
   const colorScheme = useColorScheme();
 
-  // Determine the active theme
-  const getActiveTheme = () => {
-    if (settings.theme === 'system') {
-      return colorScheme || 'light';
-    }
-    return settings.theme;
-  };
-
-  const activeTheme = getActiveTheme();
-  const themeColors = colors[activeTheme as keyof typeof colors] || colors.light;
+  const themeColors = colors[settings.theme as keyof typeof colors] || colors.andalusianMosaic;
 
   const routine = routines.find((r) => r.id === id);
   const routineTasks = getTasksForRoutine(id);
@@ -212,11 +203,11 @@ export default function RoutineDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { borderColor: colors.light.error }]}
+              style={[styles.actionButton, { borderColor: '#EF4444' }]}
               onPress={handleDeleteRoutine}
             >
-              <Trash2 size={20} color={colors.light.error} />
-              <StyledText variant="button" color={colors.light.error} style={styles.actionButtonText}>
+              <Trash2 size={20} color="#EF4444" />
+              <StyledText variant="button" color="#EF4444" style={styles.actionButtonText}>
                 حذف
               </StyledText>
             </TouchableOpacity>

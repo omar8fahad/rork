@@ -11,12 +11,12 @@ import { BookOpen, BookMarked, RefreshCw, Eye } from 'lucide-react-native';
 
 export default function QuranScreen() {
   const { settings } = useSettingsStore();
-  const { 
-    pages, 
-    updatePageRead, 
-    updatePageMemorized, 
-    updatePageRevised, 
-    getStats, 
+  const {
+    pages,
+    updatePageRead,
+    updatePageMemorized,
+    updatePageRevised,
+    getStats,
     initializePages,
     getReadPages,
     getMemorizedPages,
@@ -25,44 +25,43 @@ export default function QuranScreen() {
   const [selectedPage, setSelectedPage] = useState<QuranPage | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'read' | 'memorized' | 'revised'>('read');
-  
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+
+  const themeColors = colors[settings.theme];
+
   const stats = getStats();
-  
+
   useEffect(() => {
     if (pages.length === 0) {
       initializePages();
     }
   }, [pages.length, initializePages]);
-  
+
   const handlePagePress = (page: QuranPage) => {
     setSelectedPage(page);
     setModalVisible(true);
   };
-  
+
   const handleUpdateRead = (isRead: boolean) => {
     if (selectedPage) {
       updatePageRead(selectedPage.id, isRead);
       setModalVisible(false);
     }
   };
-  
+
   const handleUpdateMemorized = (isMemorized: boolean) => {
     if (selectedPage) {
       updatePageMemorized(selectedPage.id, isMemorized);
       setModalVisible(false);
     }
   };
-  
+
   const handleUpdateRevised = (isRevised: boolean) => {
     if (selectedPage) {
       updatePageRevised(selectedPage.id, isRevised);
       setModalVisible(false);
     }
   };
-  
+
   // Get filtered pages based on active tab
   const getFilteredPages = () => {
     switch (activeTab) {
@@ -76,13 +75,13 @@ export default function QuranScreen() {
         return pages;
     }
   };
-  
+
   const filteredPages = getFilteredPages();
-  
+
   // Get modal content based on active tab and current page status
   const getModalContent = () => {
     if (!selectedPage) return null;
-    
+
     switch (activeTab) {
       case 'read':
         return {
@@ -109,9 +108,9 @@ export default function QuranScreen() {
         return null;
     }
   };
-  
+
   const modalContent = getModalContent();
-  
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -121,7 +120,7 @@ export default function QuranScreen() {
             تتبع تقدمك في القراءة والحفظ والمراجعة
           </StyledText>
         </View>
-        
+
         <View style={[styles.statsContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
           <View style={styles.statItem}>
             <View style={[styles.statIcon, { backgroundColor: themeColors.quranRead }]}>
@@ -130,9 +129,9 @@ export default function QuranScreen() {
             <StyledText variant="h2">{stats.totalRead}</StyledText>
             <StyledText variant="caption" color={themeColors.subtext}>صفحة مقروءة</StyledText>
           </View>
-          
+
           <View style={styles.statDivider} />
-          
+
           <View style={styles.statItem}>
             <View style={[styles.statIcon, { backgroundColor: themeColors.quranMemorized }]}>
               <BookMarked size={20} color="#FFFFFF" />
@@ -140,9 +139,9 @@ export default function QuranScreen() {
             <StyledText variant="h2">{stats.totalMemorized}</StyledText>
             <StyledText variant="caption" color={themeColors.subtext}>صفحة محفوظة</StyledText>
           </View>
-          
+
           <View style={styles.statDivider} />
-          
+
           <View style={styles.statItem}>
             <View style={[styles.statIcon, { backgroundColor: themeColors.quranRevised }]}>
               <RefreshCw size={20} color="#FFFFFF" />
@@ -151,7 +150,7 @@ export default function QuranScreen() {
             <StyledText variant="caption" color={themeColors.subtext}>صفحة مراجعة</StyledText>
           </View>
         </View>
-        
+
         <View style={styles.progressSection}>
           <StyledText variant="h3">التقدم العام</StyledText>
           <View style={styles.progressContainer}>
@@ -161,7 +160,7 @@ export default function QuranScreen() {
             </StyledText>
           </View>
         </View>
-        
+
         <View style={styles.tabsContainer}>
           <TouchableOpacity
             style={[
@@ -179,7 +178,7 @@ export default function QuranScreen() {
               التلاوة
             </StyledText>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[
               styles.tab,
@@ -196,7 +195,7 @@ export default function QuranScreen() {
               الحفظ
             </StyledText>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[
               styles.tab,
@@ -214,7 +213,7 @@ export default function QuranScreen() {
             </StyledText>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.gridSection}>
           <StyledText variant="h3" style={styles.gridTitle}>
             {activeTab === 'read' && 'صفحات التلاوة'}
@@ -226,15 +225,15 @@ export default function QuranScreen() {
             {activeTab === 'memorized' && 'اضغط على الصفحة لتحديدها كمحفوظة'}
             {activeTab === 'revised' && 'اضغط على الصفحة لتحديدها كمراجعة (الصفحات المحفوظة فقط)'}
           </StyledText>
-          
-          <QuranPageGrid 
-            pages={filteredPages} 
+
+          <QuranPageGrid
+            pages={filteredPages}
             onPagePress={handlePagePress}
             activeTab={activeTab}
           />
         </View>
       </ScrollView>
-      
+
       <Modal
         visible={modalVisible}
         transparent
@@ -246,21 +245,21 @@ export default function QuranScreen() {
             <StyledText variant="h2" centered style={styles.modalTitle}>
               الصفحة {selectedPage?.id}
             </StyledText>
-            
+
             <StyledText variant="body" color={themeColors.subtext} centered style={styles.modalSubtitle}>
               {activeTab === 'read' && 'تحديث حالة التلاوة'}
               {activeTab === 'memorized' && 'تحديث حالة الحفظ'}
               {activeTab === 'revised' && 'تحديث حالة المراجعة'}
             </StyledText>
-            
+
             {selectedPage && activeTab === 'revised' && !selectedPage.isMemorized && (
-              <View style={[styles.warningContainer, { backgroundColor: colors.light.warning + '20', borderColor: colors.light.warning }]}>
-                <StyledText variant="caption" color={colors.light.warning} centered>
+              <View style={[styles.warningContainer, { backgroundColor: themeColors.warning + '20', borderColor: themeColors.warning }]}>
+                <StyledText variant="caption" color={themeColors.warning} centered>
                   يجب حفظ الصفحة أولاً قبل تسجيل المراجعة
                 </StyledText>
               </View>
             )}
-            
+
             <View style={styles.modalButtons}>
               {modalContent && (selectedPage?.isMemorized || activeTab !== 'revised') && (
                 <TouchableOpacity
@@ -274,7 +273,7 @@ export default function QuranScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            
+
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: themeColors.border }]}
               onPress={() => setModalVisible(false)}

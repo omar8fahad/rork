@@ -40,6 +40,7 @@ export type Book = {
   totalPages: number;
   currentPage: number;
   coverUrl?: string;
+  localCoverPath?: string; // Path to locally stored cover image
   startDate: number;
   lastReadDate?: number;
   completedDate?: number;
@@ -50,7 +51,7 @@ export type Book = {
 };
 
 export type AppSettings = {
-  theme: 'light' | 'dark' | 'system' | 'andalusianMosaic' | 'qiblaLines' | 'palmBreeze' | 'andalusianNights' | 'desertDawn';
+  theme: 'andalusianMosaic' | 'qiblaLines' | 'palmBreeze' | 'andalusianNights' | 'desertDawn' | 'twilightMagic' | 'moonGlow' | 'desertNights' | 'forestShadows' | 'nightWaves';
   accentColor: string;
   fontSize: number;
   calendarType: 'gregorian' | 'hijri';

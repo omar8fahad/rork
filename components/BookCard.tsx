@@ -4,6 +4,8 @@ import { ProgressBar } from './ProgressBar';
 import { colors } from '@/constants/colors';
 import { useSettingsStore } from '@/store/settingsStore';
 import { Book } from '@/types';
+import { getImageSource } from '@/utils/imageStorage';
+import { useColorScheme } from 'react-native';
 
 interface BookCardProps {
   book: Book;
@@ -13,11 +15,14 @@ interface BookCardProps {
 
 export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
   const { settings } = useSettingsStore();
-  const theme = settings.theme === 'system' ? 'light' : settings.theme;
-  const themeColors = colors[theme];
-  
+  const colorScheme = useColorScheme();
+
+  // Use the selected theme directly (no system theme anymore)
+  const themeColors = colors[settings.theme as keyof typeof colors] || colors.andalusianMosaic;
+
   const progress = (book.currentPage / book.totalPages) * 100;
-  
+  const imageSource = getImageSource(book);
+
   if (horizontal) {
     return (
       <TouchableOpacity
@@ -28,8 +33,8 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
         onPress={onPress}
         activeOpacity={0.7}
       >
-        {book.coverUrl ? (
-          <Image source={{ uri: book.coverUrl }} style={styles.horizontalCover} />
+        {imageSource ? (
+          <Image source={{ uri: imageSource }} style={styles.horizontalCover} />
         ) : (
           <View
             style={[styles.horizontalCoverPlaceholder, { backgroundColor: themeColors.secondary }]}
@@ -39,7 +44,7 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
             </StyledText>
           </View>
         )}
-        
+
         <View style={styles.horizontalDetails}>
           <StyledText variant="body" numberOfLines={2} style={styles.horizontalTitle}>
             {book.title}
@@ -47,7 +52,7 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
           <StyledText variant="caption" color={themeColors.subtext} numberOfLines={1}>
             {book.author}
           </StyledText>
-          
+
           <View style={styles.horizontalProgressContainer}>
             <ProgressBar progress={progress} height={4} />
             <StyledText variant="caption" color={themeColors.subtext} style={styles.horizontalProgressText}>
@@ -58,7 +63,7 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
       </TouchableOpacity>
     );
   }
-  
+
   return (
     <TouchableOpacity
       style={[
@@ -69,8 +74,8 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
       activeOpacity={0.7}
     >
       <View style={styles.content}>
-        {book.coverUrl ? (
-          <Image source={{ uri: book.coverUrl }} style={styles.cover} />
+        {imageSource ? (
+          <Image source={{ uri: imageSource }} style={styles.cover} />
         ) : (
           <View
             style={[styles.coverPlaceholder, { backgroundColor: themeColors.secondary }]}
@@ -80,7 +85,7 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
             </StyledText>
           </View>
         )}
-        
+
         <View style={styles.details}>
           <StyledText variant="h3" numberOfLines={1}>
             {book.title}
@@ -88,7 +93,7 @@ export function BookCard({ book, onPress, horizontal = false }: BookCardProps) {
           <StyledText variant="caption" color={themeColors.subtext} numberOfLines={1}>
             {book.author}
           </StyledText>
-          
+
           <View style={styles.progressContainer}>
             <ProgressBar progress={progress} />
             <StyledText variant="caption" color={themeColors.subtext} style={styles.progressText}>
