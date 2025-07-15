@@ -28,7 +28,7 @@ export const colors = {
     rose: '#F43F5E',
     violet: '#7C3AED',
   },
-  // 2. خطوط القِبلة
+  // 2. خطوطاتات القِبلة
   qiblaLines: {
     background: '#F2EEE8', // أبيض ترابي فاتح
     card: '#FFFFFF',
